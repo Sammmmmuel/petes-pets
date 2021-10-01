@@ -3,6 +3,9 @@ const Pet = require('../models/pet');
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 const Upload = require('s3-uploader');
+const Pet = require('../models/pet');
+
+const mailer = require('../utils/mailer');
 
 // PET ROUTES
 module.exports = (app) => {
@@ -110,10 +113,17 @@ module.exports = (app) => {
                     description: `Purchased ${pet.name}, ${pet.species}`,
                     source: token,
                 }).then((chg) => {
-                    res.redirect(`/pets/${req.params.id}`);
+                    // Convert the amount back to dollars for ease in displaying in the template
+                    const user = {
+                        email: req.body.stripeEmail,
+                        amount: chg.amount / 100,
+                        petName: pet.name
+                    };
+                    // Call our mail handler to manage sending emails
+                    mailer.sendMail(user, req, res);
                 })
                 .catch(err => {
-                    console.log('Error:' + err);
+                    console.log('Error: ' + err);
                 });
         })
     });
