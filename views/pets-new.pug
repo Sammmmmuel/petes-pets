@@ -1,11 +1,11 @@
 extends layout
 
-block content
+
     
-  .row.justify-content-center
+.row.justify-content-center
     .col-sm-6
-      legend New Pet
-      form(action="#" id="new-pet")
+    legend New Pet
+    form(action="#" id="new-pet")
 .form-group
     label Name*
     input.form-control(name="name" required)
@@ -27,3 +27,11 @@ block content
 .form-group
     label Description*
     textarea.form-control(name="description" required minlength="140")
+.form-group
+    label Avatar*
+    input.form-control(name="avatar" type="file" required)
+    if pet.avatarUrl
+        img.card-img-top(src=pet.avatarUrl + '-square.', alt='Card image cap')
+    else
+        img.card-img-top(src=pet.picUrlSq, alt='Card image cap')
+block content
