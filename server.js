@@ -2,26 +2,38 @@ if (!process.env.PORT) {
     require('dotenv').config()
     process.env.NODE_ENV = "dev"
 }
-// require our mailgun dependencies
-const nodemailer = require('nodemailer');
-const mg = require('nodemailer-mailgun-transport');
+
+//MIDDLEWARE
 const express = require('express');
+
+//provides utilities for working with file and directory paths
 const path = require('path');
 const favicon = require('serve-favicon');
+
+//Morgan is logging middleware
 const logger = require('morgan');
+
+//Parses cookie header and populate req.cookies with an object keyed by the cookie names
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+
+//Lets us use http verps such as put or delete in places
+//where the client doesnt support it
 const methodOverride = require('method-override')
+
 
 const app = express();
 
+app.locals.PUBLIC_STRIPE_API_KEY = process.env.PUBLIC_STRIPE_API_KEY
+
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/petes-pets', {
+mongoose.connect('mongodb://localhost/local', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
     useFindAndModify: false
 });
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -38,7 +50,7 @@ app.use(logger('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.locals.PUBLIC_STRIPE_API_KEY = process.env.PUBLIC_STRIPE_API_KEY
+
 
 require('./routes/index.js')(app);
 require('./routes/pets.js')(app);
@@ -59,37 +71,6 @@ app.use((err, req, res, next) => {
     // render the error page
     res.status(err.status || 500);
     res.render('error');
-});
-
-// auth with our mailgun API key and domain
-const auth = {
-        auth: {
-            api_key: process.env.MAILGUN_API_KEY,
-            domain: process.env.EMAIL_DOMAIN
-        }
-    }
-    // create a mailer
-const nodemailerMailgun = nodemailer.createTransport(mg(auth));
-// SEND EMAIL
-const user = {
-    email: 'YOUR@EMAIL.com',
-    name: 'Emily',
-    age: '43'
-};
-
-nodemailerMailgun.sendMail({
-    from: 'no-reply@example.com',
-    to: user.email, // An array if you have multiple recipients.
-    subject: 'Hey you, awesome!',
-    template: {
-        name: 'email.handlebars',
-        engine: 'handlebars',
-        context: user
-    }
-}).then(info => {
-    console.log('Response: ' + info);
-}).catch(err => {
-    console.log('Error: ' + err);
 });
 
 module.exports = app;
